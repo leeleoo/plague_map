@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'/>
+  <title>将本地JSON数据与矢量切片图形连接</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css' rel='stylesheet'/>
+  <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
+  <script src="./data.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+
+<div id='map'>
+</div>
+<script src="./js/main.js"></script>
+
+<script>
+  let cqStat = data.find((item) => item.provinceName.includes('重庆'))
+  const maxValue = 30
+  mapboxgl.accessToken = 'pk.eyJ1IjoiMTM1OTQzOTUxMzYiLCJhIjoiY2p6dWtrYTJ2MDZjYjNncGhicmQ5emNxaiJ9.vhAO6Rbm0OWX902bpp90pQ'
+  var map = new mapboxgl.Map({
+    container: 'map',
+    style    : 'mapbox://mapbox-light-v10',
+    center   : [106.86592052753099, 29.359559158104966],
+    zoom     : 5.5
+  })
+  mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.1.0/mapbox-gl-rtl-text.js');
+  map.addControl(new MapboxLanguage({
+    defaultLanguage: 'zh'
+  }));
+  var expression = ['match', ['get', 'name']]
+  map.on('load', function() {
+    map.addSource('cqgeojson', {
+      type: 'geojson',
+      data: geojson
+    })
+    cqStat.cities.forEach(function(row) {
+      const { cityName, confirmedCount } = row
+      var red = (confirmedCount / maxValue)
+      var color = 'rgba(' + 255 + ', ' + 0 + ', ' + 0 + ', ' + red + ')'
+      expression.push(cityName, color)
+    })
+    expression.push('rgba(0,0,0,0)')
+
+// Last value is the default, used where there is no data
+
+// Add layer from the vector tile source with data-driven style
+    map.addLayer({
+      'id'    : 'states-join',
+      'type'  : 'fill',
+      'source': 'cqgeojson',
+      'paint' : {
+        'fill-color': expression
+      }
+    }, 'waterway-label')
+
+  })
+</script>
+
+</body>
+</html>
