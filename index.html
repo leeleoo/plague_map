@@ -33,12 +33,14 @@
   let cqStat = data.find((item) => item.provinceName.includes('重庆'))
   const maxValue = 30
   mapboxgl.accessToken = 'pk.eyJ1IjoiMTM1OTQzOTUxMzYiLCJhIjoiY2p6dWtrYTJ2MDZjYjNncGhicmQ5emNxaiJ9.vhAO6Rbm0OWX902bpp90pQ'
+  //mapbox://mapbox-light-v9
   var map = new mapboxgl.Map({
     container: 'map',
-    style    : 'mapbox://mapbox-light-v10',
-    center   : [106.86592052753099, 29.359559158104966],
+    style    : 'mapbox://styles/mapbox/light-v9',
+    center   : [107.80592052753099, 29.359559158104966],
     zoom     : 5.5
   })
+
   mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.1.0/mapbox-gl-rtl-text.js');
   map.addControl(new MapboxLanguage({
     defaultLanguage: 'zh'
