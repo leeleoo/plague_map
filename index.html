@@ -13,39 +13,58 @@
       margin: 0;
       padding: 0;
     }
-
     #map {
       position: absolute;
       top: 0;
       bottom: 0;
       width: 100%;
     }
+
+    .map-overlay {
+      font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+      background-color: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      border-radius: 3px;
+      position: absolute;
+      width: 25%;
+      top: 10px;
+      left: 10px;
+      padding: 10px;
+      display: none;
+    }
   </style>
 </head>
 <body>
-
-
 <div id='map'>
 </div>
+<div id="map-overlay" class="map-overlay"></div>
+
 <script src="./js/main.js"></script>
 
 <script>
-  let cqStat = data.find((item) => item.provinceName.includes('重庆'))
+  geojson.features.forEach((item, index) => {
+    item.id = index
+    item.properties._index = index
+  })
+  const cqStat = data.find((item) => item.provinceName.includes('重庆'))
+  const overlay = document.getElementById('map-overlay')
+  const popup = new mapboxgl.Popup({
+    closeButton: false
+  })
+
+  const $ = document.querySelector
   const maxValue = 30
   mapboxgl.accessToken = 'pk.eyJ1IjoiMTM1OTQzOTUxMzYiLCJhIjoiY2p6dWtrYTJ2MDZjYjNncGhicmQ5emNxaiJ9.vhAO6Rbm0OWX902bpp90pQ'
-  //mapbox://mapbox-light-v9
-  var map = new mapboxgl.Map({
+  const map = new mapboxgl.Map({
     container: 'map',
     style    : 'mapbox://styles/mapbox/light-v9',
     center   : [107.80592052753099, 29.359559158104966],
     zoom     : 5.5
   })
-
-  mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.1.0/mapbox-gl-rtl-text.js');
   map.addControl(new MapboxLanguage({
     defaultLanguage: 'zh'
-  }));
-  var expression = ['match', ['get', 'name']]
+  }))
+  let expression = ['match', ['get', 'name']]
   map.on('load', function() {
     map.addSource('cqgeojson', {
       type: 'geojson',
@@ -58,20 +77,84 @@
       expression.push(cityName, color)
     })
     expression.push('rgba(0,0,0,0)')
-
-// Last value is the default, used where there is no data
-
-// Add layer from the vector tile source with data-driven style
     map.addLayer({
       'id'    : 'states-join',
       'type'  : 'fill',
       'source': 'cqgeojson',
       'paint' : {
         'fill-color': expression
+
       }
     }, 'waterway-label')
+    map.addLayer({
+      'id'    : 'state-borders',
+      'type'  : 'line',
+      'source': 'cqgeojson',
+      'layout': {},
+      'paint' : {
+        'line-color': [
+          'case',
+          ['boolean', ['feature-state', 'hover'], false],
+          'rgba(255,255,255,1)',
+          'rgba(0,0,0,0)'
+        ],
+        'line-width': 3
+      }
+    })
 
   })
+  let hoveredId = ''
+  map.on('click', 'states-join', function(e) {
+    if (!e.features[0].properties) return
+    const { name, adcode, _index } = e.features[0].properties
+    const res = cqStat.cities.find((item) => {
+      return item.cityName === name
+    }) || {}
+
+    new mapboxgl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(`<p>${name}确诊${res.confirmedCount || 0}例</p>`)
+      .addTo(map)
+  })
+  map.on('mousemove', 'states-join', function(e) {
+    console.log('e.features', e.features)
+    if (!e.features[0].properties) return
+    const { name, adcode, _index } = e.features[0].properties
+    console.log('name', name)
+    const res = cqStat.cities.find((item) => {
+      return item.cityName === name
+    }) || {}
+    console.log('res', res, name)
+    if (typeof hoveredId === 'number') {
+      map.setFeatureState(
+        { source: 'cqgeojson', id: hoveredId },
+        { hover: false }
+      )
+      popup.remove()
+    }
+
+    var title = document.createElement('strong')
+    title.textContent = name
+//      overlay.appendChild(title);
+//      overlay.appendChild(population);
+//      overlay.style.display = 'block';
+    hoveredId = _index
+    map.setFeatureState(
+      { source: 'cqgeojson', id: _index },
+      { hover: true }
+    )
+    if (!res.cityName) return
+
+//      Object.keys(res).forEach(item => {
+//        console.log('item', item, 'res:', res)
+//        const ele = document.querySelector('#' + item)
+//        console.log(ele)
+//        if (!ele) return
+//        ele.innerHTML = res[item]
+//
+//      })
+  })
+
 </script>
 
 </body>

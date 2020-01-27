@@ -6796,8 +6796,10 @@ var geojson = {
         'childrenNum'    : 0, 'level': 'district',
         'subFeatureIndex': 37,
         'acroutes'       : [100000, 500000]
-      }, 'geometry': {
-        'type': 'MultiPolygon', 'coordinates': [
+      },
+      'geometry': {
+        'type': 'MultiPolygon',
+        'coordinates': [
           [
             [
               [108.312103, 28.997497],
