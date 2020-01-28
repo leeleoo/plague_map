@@ -6526,7 +6526,7 @@ var geojson = {
     },
     {
       'type'       : 'Feature', 'properties': {
-        'adcode'                   : 500242, 'name': '酉阳土家族苗族自治县', 'center': [108.767201, 28.839828], 'centroid': [
+        'adcode'                   : 500242, 'name': '酉阳县', 'center': [108.767201, 28.839828], 'centroid': [
           108.800286,
           28.899839], 'childrenNum': 0, 'level': 'district', 'subFeatureIndex': 36, 'acroutes': [100000, 500000]
       }, 'geometry': {
@@ -6790,7 +6790,7 @@ var geojson = {
       'type'       : 'Feature',
       'properties' : {
         'adcode'         : 500243,
-        'name'           : '彭水苗族土家族自治县',
+        'name'           : '彭水县',
         'center'         : [108.166551, 29.293856],
         'centroid'       : [108.266309, 29.353956],
         'childrenNum'    : 0, 'level': 'district',
