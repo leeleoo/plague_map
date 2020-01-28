@@ -4,24 +4,30 @@
   <meta charset='utf-8'/>
   <title>重庆市疫情地图</title>
   <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
+  <meta name="author" content="yang1180mm"/>
+  <meta name="keywords" content="重庆市疫情地图,地级市疫情地图,交互式疫情地图"/>
+  <meta name="description" content="重庆市疫情地图,mapbox"/>
   <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.js'></script>
   <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css' rel='stylesheet'/>
   <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
   <script src="./data.js"></script>
   <style>
-    body,ul {
+    body, ul {
       margin: 0;
       padding: 0;
     }
-    ul{
-      list-style: none  ;
+
+    ul {
+      list-style: none;
     }
+
     #map {
       position: absolute;
       top: 0;
       bottom: 0;
       width: 100%;
     }
+
     .map-overlay {
       font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
       background-color: #fff;
@@ -34,6 +40,7 @@
       padding: 10px;
       display: none;
     }
+
     .mapboxgl-popup-content {
       position: relative;
       background: #fff;
@@ -75,14 +82,14 @@
   let expression = ['match', ['get', 'name']]
   map.on('load', function() {
     map.flyTo({
-      center   : [107.80592052753099, 29.359559158104966],
-      zoom     : 5.5,
-      speed: 0.15,
-      curve: 1,
+      center: [107.80592052753099, 29.359559158104966],
+      zoom  : 5.5,
+      speed : 0.15,
+      curve : 1,
       easing(t) {
-        return t;
+        return t
       }
-    });
+    })
     map.addSource('cqgeojson', {
       type: 'geojson',
       data: geojson
@@ -129,33 +136,33 @@
     }) || {
       cityName: name
     }
-    setTimeout(()=>{
+    setTimeout(() => {
       hoveredId = _index
       map.setFeatureState(
         { source: 'cqgeojson', id: _index },
         { hover: true }
       )
-    },0)
+    }, 0)
     const key_map = {
-      cityName: '',
-      confirmedCount:'确诊:',
+      cityName      : '',
+      confirmedCount: '确诊:',
       suspectedCount: '疑似:',
-      curedCount: '治愈:',
-      deadCount: '死亡:'
+      curedCount    : '治愈:',
+      deadCount     : '死亡:'
     }
     const html = `
     <div>
         <ul>
-            ${Object.keys(res).map((key)=> `<li>${key_map[key]}${res[key]}</li>`)
-        .join('')}
+            ${Object.keys(res).map((key) => `<li>${key_map[key]}${res[key]}</li>`)
+      .join('')}
         </ul>
     </div>`
     new mapboxgl.Popup()
       .setLngLat(e.lngLat)
       .setHTML(html)
       .addTo(map)
-      .on('close',function(e) {
-        if(typeof hoveredId === 'number'){
+      .on('close', function(e) {
+        if (typeof hoveredId === 'number') {
           map.setFeatureState(
             { source: 'cqgeojson', id: hoveredId },
             { hover: false }
@@ -163,7 +170,6 @@
           hoveredId = null
         }
       })
-
 
   })
 
