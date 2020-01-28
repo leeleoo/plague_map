@@ -34,6 +34,14 @@
       padding: 10px;
       display: none;
     }
+    .mapboxgl-popup-content {
+      position: relative;
+      background: #fff;
+      border-radius: 3px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      padding: 10px 15px !important;
+      pointer-events: auto;
+    }
   </style>
 </head>
 <body>
@@ -69,7 +77,7 @@
     map.flyTo({
       center   : [107.80592052753099, 29.359559158104966],
       zoom     : 5.5,
-      speed: 0.1,
+      speed: 0.15,
       curve: 1,
       easing(t) {
         return t;
@@ -107,24 +115,27 @@
           'rgba(255,255,255,1)',
           'rgba(0,0,0,0)'
         ],
-        'line-width': 3
+        'line-width': 2
       }
     })
 
   })
   let hoveredId = ''
   map.on('click', 'states-join', function(e) {
-    if (!e.features[0].properties){
-      if (typeof hoveredId === 'number') {
-        popup.remove()
-      }
-    }
-    const { name, adcode, _index } = e.features[0].properties
+    if (!e.features[0].properties) return
+    const { name, _index } = e.features[0].properties
     const res = cqStat.cities.find((item) => {
       return item.cityName === name
-    }) || {}
-
-    if(!res.cityName)return
+    }) || {
+      cityName: name
+    }
+    setTimeout(()=>{
+      hoveredId = _index
+      map.setFeatureState(
+        { source: 'cqgeojson', id: _index },
+        { hover: true }
+      )
+    },0)
     const key_map = {
       cityName: '',
       confirmedCount:'确诊:',
@@ -139,57 +150,23 @@
         .join('')}
         </ul>
     </div>`
-
     new mapboxgl.Popup()
       .setLngLat(e.lngLat)
       .setHTML(html)
       .addTo(map)
       .on('close',function(e) {
-//        if(hoveredId){
-//          map.setFeatureState(
-//            { source: 'cqgeojson', id: hoveredId },
-//            { hover: false }
-//          )
-//        }
+        if(typeof hoveredId === 'number'){
+          map.setFeatureState(
+            { source: 'cqgeojson', id: hoveredId },
+            { hover: false }
+          )
+          hoveredId = null
+        }
       })
-  })
-  map.on('mousemove', 'states-join', function(e) {
-    if (!e.features[0].properties) return
-    const { name, adcode, _index } = e.features[0].properties
-    console.log('name', name)
-    const res = cqStat.cities.find((item) => {
-      return item.cityName === name
-    }) || {}
-    console.log('res', res, name)
-    if (typeof hoveredId === 'number') {
-      map.setFeatureState(
-        { source: 'cqgeojson', id: hoveredId },
-        { hover: false }
-      )
-      popup.remove()
-    }
 
-    var title = document.createElement('strong')
-    title.textContent = name
-//      overlay.appendChild(title);
-//      overlay.appendChild(population);
-//      overlay.style.display = 'block';
-    hoveredId = _index
-    map.setFeatureState(
-      { source: 'cqgeojson', id: _index },
-      { hover: true }
-    )
-    if (!res.cityName) return
 
-//      Object.keys(res).forEach(item => {
-//        console.log('item', item, 'res:', res)
-//        const ele = document.querySelector('#' + item)
-//        console.log(ele)
-//        if (!ele) return
-//        ele.innerHTML = res[item]
-//
-//      })
   })
+
 
 </script>
 
