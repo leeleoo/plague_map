@@ -2,16 +2,19 @@
 <html>
 <head>
   <meta charset='utf-8'/>
-  <title>将本地JSON数据与矢量切片图形连接</title>
+  <title>重庆市疫情地图</title>
   <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
   <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.js'></script>
   <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css' rel='stylesheet'/>
   <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
   <script src="./data.js"></script>
   <style>
-    body {
+    body,ul {
       margin: 0;
       padding: 0;
+    }
+    ul{
+      list-style: none  ;
     }
     #map {
       position: absolute;
@@ -19,7 +22,6 @@
       bottom: 0;
       width: 100%;
     }
-
     .map-overlay {
       font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
       background-color: #fff;
@@ -38,9 +40,7 @@
 <div id='map'>
 </div>
 <div id="map-overlay" class="map-overlay"></div>
-
 <script src="./js/main.js"></script>
-
 <script>
   geojson.features.forEach((item, index) => {
     item.id = index
@@ -59,13 +59,22 @@
     container: 'map',
     style    : 'mapbox://styles/mapbox/light-v9',
     center   : [107.80592052753099, 29.359559158104966],
-    zoom     : 5.5
+    zoom     : 5.0
   })
   map.addControl(new MapboxLanguage({
     defaultLanguage: 'zh'
   }))
   let expression = ['match', ['get', 'name']]
   map.on('load', function() {
+    map.flyTo({
+      center   : [107.80592052753099, 29.359559158104966],
+      zoom     : 5.5,
+      speed: 0.1,
+      curve: 1,
+      easing(t) {
+        return t;
+      }
+    });
     map.addSource('cqgeojson', {
       type: 'geojson',
       data: geojson
@@ -105,19 +114,46 @@
   })
   let hoveredId = ''
   map.on('click', 'states-join', function(e) {
-    if (!e.features[0].properties) return
+    if (!e.features[0].properties){
+      if (typeof hoveredId === 'number') {
+        popup.remove()
+      }
+    }
     const { name, adcode, _index } = e.features[0].properties
     const res = cqStat.cities.find((item) => {
       return item.cityName === name
     }) || {}
 
+    if(!res.cityName)return
+    const key_map = {
+      cityName: '',
+      confirmedCount:'确诊:',
+      suspectedCount: '疑似:',
+      curedCount: '治愈:',
+      deadCount: '死亡:'
+    }
+    const html = `
+    <div>
+        <ul>
+            ${Object.keys(res).map((key)=> `<li>${key_map[key]}${res[key]}</li>`)
+        .join('')}
+        </ul>
+    </div>`
+
     new mapboxgl.Popup()
       .setLngLat(e.lngLat)
-      .setHTML(`<p>${name}确诊${res.confirmedCount || 0}例</p>`)
+      .setHTML(html)
       .addTo(map)
+      .on('close',function(e) {
+//        if(hoveredId){
+//          map.setFeatureState(
+//            { source: 'cqgeojson', id: hoveredId },
+//            { hover: false }
+//          )
+//        }
+      })
   })
   map.on('mousemove', 'states-join', function(e) {
-    console.log('e.features', e.features)
     if (!e.features[0].properties) return
     const { name, adcode, _index } = e.features[0].properties
     console.log('name', name)
